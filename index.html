@@ -7,7 +7,7 @@
     }
 </style>
 <body>
-    <canvas id="hola" width="0" height="0" style="border:1px solid #000000; color: transparent;"></canvas>
+    <canvas id="hola" width="50%" height="50%" style="border:1px solid #000000; color: transparent;"></canvas>
 
 </body>
     <div id="opciones" style="width: auto; height: auto; display: inline;">
@@ -17,13 +17,14 @@
         <input type="file" accept="image/*" id="archivo">
         <br><br>
         <span>escala</span>
-        <input type="range" id="escala" style="width: 150%;">
+        <input type="number" id="escala" size="2" step="0.025" value="1">
+        <br>
         <span>rotacion</span>
         <input type="range" id="angulo" style="width: 150%;" min="-360" max="360" value="0">
-        <span>posicion X</span>
-        <input type="range" id="posX" style="width: 150%;" min="0" max="1" value="0.5" step="any">
-        <span>posicion Y</span>
-        <input type="range" id="posY" style="width: 150%;" min="0" max="1" value="0.5" step="any">
+        <button id="resetRotation" onclick="resetRotation()" style="padding: 1%">resetear rotacion</button>
+        <br>
+        <br>
+
     </div>
 <script>
     var canvas = document.getElementById("hola")
@@ -36,13 +37,8 @@
     selectorFondo.addEventListener('input', function(e) {
         fondo.src = URL.createObjectURL(selectorFondo.files[0])
         fondo.addEventListener('load', function(e) {
-
-
             canvas.width = fondo.width
             canvas.height = fondo.height
-
-            console.log(fondo.width)
-            console.log(fondo.height)
         })
     })
 
@@ -54,7 +50,7 @@
     var imageAngulo = 0
     var imagenSobreFondoPosicion = [0, 0]
 
-    var sliderX = document.getElementById("posX")
+    /*var sliderX = document.getElementById("posX")
     sliderX.addEventListener('input', function(e) {
         imagenSobreFondoPosicion[0] = (sliderX.value) * (canvas.width + imagenSobreFondo.width * imagenSobreFondoEscala[0])/2 - imagenSobreFondo.width/2
     })
@@ -62,11 +58,15 @@
     var sliderY = document.getElementById("posY")
     sliderY.addEventListener('input', function(e) {
         imagenSobreFondoPosicion[1] = (sliderY.value) * (canvas.height + imagenSobreFondo.height * imagenSobreFondoEscala[1])/2 - imagenSobreFondo.height/2
-    })
+    })*/
+
+    function setEscala(escala) {
+        imagenSobreFondoEscala[0] = imagenSobreFondoEscala[1] = escala
+    }
 
     var sliderEscala = document.getElementById("escala")
     sliderEscala.addEventListener('input', function(e) {
-        imagenSobreFondoEscala[0] = imagenSobreFondoEscala[1] = (sliderEscala.value / 100) * 2
+        setEscala(sliderEscala.value)
     })
 
     var sliderRotacion = document.getElementById("angulo")
@@ -79,6 +79,11 @@
         imagenSobreFondoMatrix[2] = Math.sin(angulo)
         imagenSobreFondoMatrix[3] = Math.cos(angulo)*/
     })
+
+    function resetRotation() {
+        imageAngulo = 0
+        sliderRotacion.value = 0
+    }
 
     selector.addEventListener("input", function(input) {
         var coso = selector.files[0]
@@ -104,11 +109,50 @@
         imagenSobreFondo.src = URL.createObjectURL(e.clipboardData.files[0])
     })
 
+    var holdingImage = false
+
+    canvas.addEventListener("mousedown", function(e) {
+        holdingImage = true
+    })
+
+    window.addEventListener("mouseup", function(e) {
+        holdingImage = false
+    })
+
+    var mouseDelta = [0, 0]
+    var mousePos = [0, 0]
+    var mouseRealPos = [0, 0]
+    var mouseBeforePos = [0, 0]
+
+    window.addEventListener("mousemove", function(e) {
+        mouseRealPos = [e.screenX, e.screenY]
+    })
+
+    var factorEscala = 0.025
+
+    window.addEventListener("wheel", function(e) {
+        sliderEscala.value = Math.round((parseFloat((-e.deltaY/100) * factorEscala) + parseFloat(sliderEscala.value)) * 100) / 100
+        setEscala(sliderEscala.value)
+    })
+
+    var imagenOffsetPos = [0, 0]
+
     function onUpdate() {
+        mouseBeforePos = mousePos
+        mousePos = mouseRealPos
+
         ctx.drawImage(fondo, 0, 0);
 
-        imagenSobreFondoPosicion[0] = (sliderX.value) * (canvas.width + imagenSobreFondo.width)/2 - imagenSobreFondo.width/2
-        imagenSobreFondoPosicion[1] = (sliderY.value) * (canvas.height + imagenSobreFondo.height)/2 - imagenSobreFondo.height/2
+        if (holdingImage) {
+            mouseDelta = [mouseRealPos[0]-mouseBeforePos[0], mouseRealPos[1]-mouseBeforePos[1]]
+            console.log(mouseDelta)
+
+            imagenOffsetPos[0] += mouseDelta[0]
+            imagenOffsetPos[1] += mouseDelta[1]
+        }
+
+        imagenSobreFondoPosicion[0] = imagenOffsetPos[0] /* * (canvas.width + imagenSobreFondo.width)/2 - imagenSobreFondo.width/2*/
+        imagenSobreFondoPosicion[1] = imagenOffsetPos[1] /* * (canvas.height + imagenSobreFondo.height)/2 - imagenSobreFondo.height/2*/
         
         ctx.translate(imagenSobreFondoPosicion[0], imagenSobreFondoPosicion[1])
 
