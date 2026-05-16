@@ -1,10 +1,133 @@
 <!DOCTYPE html>
-<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title></title>
 </head>
+<style>
+    body {
+        display: flex;
+    }
+</style>
 <body>
- hola
+    <canvas id="hola" width="0" height="0" style="border:1px solid #000000; color: transparent;"></canvas>
+
 </body>
-</html>
+    <div id="opciones" style="width: auto; height: auto; display: inline;">
+        fondo
+        <input type="file" accept="image/*" id="fondo">
+        imagen
+        <input type="file" accept="image/*" id="archivo">
+        <br><br>
+        <span>escala</span>
+        <input type="range" id="escala" style="width: 150%;">
+        <span>rotacion</span>
+        <input type="range" id="angulo" style="width: 150%;" min="-360" max="360" value="0">
+        <span>posicion X</span>
+        <input type="range" id="posX" style="width: 150%;" min="0" max="1" value="0.5" step="any">
+        <span>posicion Y</span>
+        <input type="range" id="posY" style="width: 150%;" min="0" max="1" value="0.5" step="any">
+    </div>
+<script>
+    var canvas = document.getElementById("hola")
+
+    var ctx = canvas.getContext("2d")
+
+    var fondo = document.createElement("img")
+
+    var selectorFondo = document.getElementById("fondo")
+    selectorFondo.addEventListener('input', function(e) {
+        fondo.src = URL.createObjectURL(selectorFondo.files[0])
+        fondo.addEventListener('load', function(e) {
+
+
+            canvas.width = fondo.width
+            canvas.height = fondo.height
+
+            console.log(fondo.width)
+            console.log(fondo.height)
+        })
+    })
+
+    var selector = document.getElementById('archivo')
+
+    var imagenSobreFondo = new Image()
+    var imagenSobreFondoEscala = [1, 1]
+    var imagenSobreFondoOrigen = [0.5, 0.5]
+    var imageAngulo = 0
+    var imagenSobreFondoPosicion = [0, 0]
+
+    var sliderX = document.getElementById("posX")
+    sliderX.addEventListener('input', function(e) {
+        imagenSobreFondoPosicion[0] = (sliderX.value) * (canvas.width + imagenSobreFondo.width * imagenSobreFondoEscala[0])/2 - imagenSobreFondo.width/2
+    })
+
+    var sliderY = document.getElementById("posY")
+    sliderY.addEventListener('input', function(e) {
+        imagenSobreFondoPosicion[1] = (sliderY.value) * (canvas.height + imagenSobreFondo.height * imagenSobreFondoEscala[1])/2 - imagenSobreFondo.height/2
+    })
+
+    var sliderEscala = document.getElementById("escala")
+    sliderEscala.addEventListener('input', function(e) {
+        imagenSobreFondoEscala[0] = imagenSobreFondoEscala[1] = (sliderEscala.value / 100) * 2
+    })
+
+    var sliderRotacion = document.getElementById("angulo")
+    sliderRotacion.addEventListener('input', function(e) {
+        console.log(sliderRotacion.value)
+        var angulo = (sliderRotacion.value * Math.PI) / 180
+        imageAngulo = angulo
+        /*imagenSobreFondoMatrix[0] = Math.cos(angulo)
+        imagenSobreFondoMatrix[1] = -Math.sin(angulo)
+        imagenSobreFondoMatrix[2] = Math.sin(angulo)
+        imagenSobreFondoMatrix[3] = Math.cos(angulo)*/
+    })
+
+    selector.addEventListener("input", function(input) {
+        var coso = selector.files[0]
+
+        imagenSobreFondo.src = URL.createObjectURL(coso)
+
+        /*var blob = new Blob([selector.files[0].bytes], { type: 'image/png' });
+
+        createImageBitmap(blob).then(function(imageBitmap) {
+            ctx.drawImage(imageBitmap, 0, 0)
+        })*/
+
+        /*var image = document.createElement("img")
+        image.src = input.target.files[0]
+
+        image.addEventListener("load", (e) => {
+            ctx.drawImage(input.target.files[0], 0, 0);
+        });*/
+    })
+
+    window.addEventListener('paste', function(e) {
+        e.preventDefault();
+        imagenSobreFondo.src = URL.createObjectURL(e.clipboardData.files[0])
+    })
+
+    function onUpdate() {
+        ctx.drawImage(fondo, 0, 0);
+
+        imagenSobreFondoPosicion[0] = (sliderX.value) * (canvas.width + imagenSobreFondo.width)/2 - imagenSobreFondo.width/2
+        imagenSobreFondoPosicion[1] = (sliderY.value) * (canvas.height + imagenSobreFondo.height)/2 - imagenSobreFondo.height/2
+        
+        ctx.translate(imagenSobreFondoPosicion[0], imagenSobreFondoPosicion[1])
+
+        ctx.translate(
+            imagenSobreFondoOrigen[0] * (imagenSobreFondo.width),
+            imagenSobreFondoOrigen[1] * (imagenSobreFondo.height)
+        )
+        ctx.rotate(imageAngulo)
+        ctx.scale(imagenSobreFondoEscala[0], imagenSobreFondoEscala[1])
+        ctx.translate(
+            -imagenSobreFondoOrigen[0] * (imagenSobreFondo.width),
+            -imagenSobreFondoOrigen[1] * (imagenSobreFondo.height)
+        )
+
+        ctx.drawImage(imagenSobreFondo, 0, 0)
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.rotate(0)
+
+        requestAnimationFrame(onUpdate)
+    }
+    onUpdate()
+</script>
