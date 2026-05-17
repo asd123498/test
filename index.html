@@ -15,7 +15,6 @@
 <body>
     <canvas id="hola" width="50%" height="50%"></canvas>
 
-</body>
     <div id="opciones" style="width: auto; height: auto; display: inline;">
         fondo
         <input type="file" accept="image/*" id="fondo">
@@ -32,6 +31,8 @@
         <br>
 
     </div>
+
+</body>
 <script>
     var canvas = document.getElementById("hola")
 
@@ -136,6 +137,17 @@
 
     var factorEscala = 0.025
 
+    window.addEventListener("keydown", function(e) {
+        if (!e.repeat && e.key.toLowerCase() == "shift")
+            factorEscala = 0.05
+    })
+
+    window.addEventListener("keyup", function(e) {
+        if (e.key.toLowerCase() == "shift")
+            factorEscala = 0.025
+
+    })
+
     window.addEventListener("wheel", function(e) {
         sliderEscala.value = Math.round((parseFloat((-e.deltaY/100) * factorEscala) + parseFloat(sliderEscala.value)) * 100) / 100
         setEscala(sliderEscala.value)
@@ -144,6 +156,8 @@
     var imagenOffsetPos = [0, 0]
 
     function onUpdate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
         mouseBeforePos = mousePos
         mousePos = mouseRealPos
 
@@ -160,6 +174,7 @@
         imagenSobreFondoPosicion[0] = imagenOffsetPos[0] /* * (canvas.width + imagenSobreFondo.width)/2 - imagenSobreFondo.width/2*/
         imagenSobreFondoPosicion[1] = imagenOffsetPos[1] /* * (canvas.height + imagenSobreFondo.height)/2 - imagenSobreFondo.height/2*/
         
+        ctx.save()
         ctx.translate(imagenSobreFondoPosicion[0], imagenSobreFondoPosicion[1])
 
         ctx.translate(
@@ -174,8 +189,7 @@
         )
 
         ctx.drawImage(imagenSobreFondo, 0, 0)
-        ctx.setTransform(1, 0, 0, 1, 0, 0)
-        ctx.rotate(0)
+        ctx.restore()
 
         requestAnimationFrame(onUpdate)
     }
