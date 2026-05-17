@@ -4,10 +4,16 @@
 <style>
     body {
         display: flex;
+        height: 90vh;
+    }
+
+    #hola {
+        border:1px solid #000000; color: transparent;
+        margin-right: 10px;
     }
 </style>
 <body>
-    <canvas id="hola" width="50%" height="50%" style="border:1px solid #000000; color: transparent;"></canvas>
+    <canvas id="hola" width="50%" height="50%"></canvas>
 
 </body>
     <div id="opciones" style="width: auto; height: auto; display: inline;">
@@ -112,11 +118,11 @@
     var holdingImage = false
 
     canvas.addEventListener("mousedown", function(e) {
-        holdingImage = true
+        if (e.button == 0) if (!holdingImage) holdingImage = true
     })
 
     window.addEventListener("mouseup", function(e) {
-        holdingImage = false
+        if (e.button == 0) if (holdingImage) holdingImage = false
     })
 
     var mouseDelta = [0, 0]
